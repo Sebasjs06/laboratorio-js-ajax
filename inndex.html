@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio JavaScript y AJAX</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 960px; margin: 20px auto; padding: 0 16px; color: #222; }
+  h1 { border-bottom: 3px solid #2a5db0; padding-bottom: 6px; }
+  h2 { color: #2a5db0; margin-top: 32px; }
+  fieldset { border: 1px solid #bbb; border-radius: 6px; margin: 12px 0; padding: 12px; }
+  legend { font-weight: bold; }
+  input[type=text] { width: 70%; padding: 6px; }
+  button { padding: 6px 14px; cursor: pointer; }
+  .salida { background: #f3f6fb; border-left: 4px solid #2a5db0; padding: 8px; margin-top: 8px; min-height: 1.4em; white-space: pre-wrap; }
+  pre.zona { background: #111; color: #9f9; padding: 10px; height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-all; margin: 0; }
+  .zona-estado, .zona-codigo { background: #f3f6fb; padding: 8px; min-height: 1.4em; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<h1>Laboratorio: Tecnologías JavaScript y AJAX</h1>
+
+<!-- ================= JAVASCRIPT ================= -->
+<h2>Parte 1 · JavaScript</h2>
+
+<fieldset>
+  <legend>Ejercicio 1 · ¿Es un palíndromo?</legend>
+  <input type="text" id="palindromoEntrada" placeholder="Ej.: Anita lava la tina">
+  <button onclick="ejercicio1()">Comprobar</button>
+  <div class="salida" id="palindromoSalida"></div>
+</fieldset>
+
+<fieldset>
+  <legend>Ejercicio 2 · Número mayor</legend>
+  <input type="text" id="num1" placeholder="Primer número" style="width:30%">
+  <input type="text" id="num2" placeholder="Segundo número" style="width:30%">
+  <button onclick="ejercicio2()">Comparar</button>
+  <div class="salida" id="mayorSalida"></div>
+</fieldset>
+
+<fieldset>
+  <legend>Ejercicio 3 · Vocales que aparecen</legend>
+  <input type="text" id="vocalesEntrada" placeholder="Escribe una frase">
+  <button onclick="ejercicio3()">Mostrar vocales</button>
+  <div class="salida" id="vocalesSalida"></div>
+</fieldset>
+
+<fieldset>
+  <legend>Ejercicio 4 · Cuántas veces aparece cada vocal</legend>
+  <input type="text" id="contarEntrada" placeholder="Escribe una frase">
+  <button onclick="ejercicio4()">Contar vocales</button>
+  <div class="salida" id="contarSalida"></div>
+</fieldset>
+
+<!-- ================= AJAX ================= -->
+<h2>Parte 2 · AJAX</h2>
+
+<fieldset>
+  <legend>URL del recurso</legend>
+  <input type="text" id="url">
+  <button id="mostrar">Mostrar Contenidos</button>
+</fieldset>
+
+<fieldset>
+  <legend>Contenidos del archivo</legend>
+  <pre class="zona" id="contenidos"></pre>
+</fieldset>
+
+<fieldset>
+  <legend>Estados de la petición</legend>
+  <div class="zona-estado" id="estados"></div>
+</fieldset>
+
+<fieldset>
+  <legend>Cabeceras HTTP de la respuesta del servidor</legend>
+  <pre class="zona" id="cabeceras"></pre>
+</fieldset>
+
+<fieldset>
+  <legend>Código de estado</legend>
+  <div class="zona-codigo" id="codigo"></div>
+</fieldset>
+
+<script>
+/* ============================================================
+   JAVASCRIPT
+   ============================================================ */
+
+// Normaliza: minúsculas, sin tildes/diéresis y sin caracteres que no sean letras o dígitos
+function normalizar(texto) {
+  return texto.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z0-9ñ]/g, "");
+}
+
+/* Ejercicio 1: palíndromo */
+function esPalindromo(cadena) {
+  const limpia = normalizar(cadena);
+  if (limpia.length === 0) return null;
+  return limpia === limpia.split("").reverse().join("");
+}
+function ejercicio1() {
+  const entrada = document.getElementById("palindromoEntrada").value;
+  const r = esPalindromo(entrada);
+  document.getElementById("palindromoSalida").textContent =
+    r === null ? "Introduce una cadena." :
+    r ? "\"" + entrada + "\" SÍ es un palíndromo." :
+        "\"" + entrada + "\" NO es un palíndromo.";
+}
+
+/* Ejercicio 2: mayor de dos números */
+function mayorDeDos(a, b) {
+  if (a > b) return a + " es mayor que " + b;
+  if (b > a) return b + " es mayor que " + a;
+  return "Los dos números son iguales (" + a + ")";
+}
+function ejercicio2() {
+  const a = parseFloat(document.getElementById("num1").value.replace(",", "."));
+  const b = parseFloat(document.getElementById("num2").value.replace(",", "."));
+  document.getElementById("mayorSalida").textContent =
+    (isNaN(a) || isNaN(b)) ? "Introduce dos números válidos." : mayorDeDos(a, b);
+}
+
+/* Ejercicio 3: vocales que aparecen (en orden de aparición) */
+function vocalesDe(frase) {
+  const base = frase.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return base.split("").filter(c => "aeiou".includes(c));
+}
+function ejercicio3() {
+  const frase = document.getElementById("vocalesEntrada").value;
+  const v = vocalesDe(frase);
+  document.getElementById("vocalesSalida").textContent =
+    v.length ? "Vocales (" + v.length + "): " + v.join(" ") : "La frase no contiene vocales.";
+}
+
+/* Ejercicio 4: recuento de cada vocal */
+function contarVocales(frase) {
+  const cuenta = { a: 0, e: 0, i: 0, o: 0, u: 0 };
+  vocalesDe(frase).forEach(v => cuenta[v]++);
+  return cuenta;
+}
+function ejercicio4() {
+  const c = contarVocales(document.getElementById("contarEntrada").value);
+  document.getElementById("contarSalida").textContent =
+    Object.keys(c).map(v => v.toUpperCase() + ": " + c[v]).join("\n");
+}
+
+/* ============================================================
+   AJAX
+   ============================================================ */
+const ESTADOS = ["0 · No iniciada (UNSENT)",
+                 "1 · Conexión establecida (OPENED)",
+                 "2 · Cabeceras recibidas (HEADERS_RECEIVED)",
+                 "3 · Cargando (LOADING)",
+                 "4 · Completada (DONE)"];
+
+// AJAX 1: al cargar la página, el cuadro de texto muestra la URL de la propia página
+window.addEventListener("load", function () {
+  document.getElementById("url").value = window.location.href;
+  document.getElementById("estados").textContent = ESTADOS[0];
+  document.getElementById("mostrar").addEventListener("click", mostrarContenidos);
+});
+
+function mostrarContenidos() {
+  const url = document.getElementById("url").value.trim();
+  const zonaContenidos = document.getElementById("contenidos");
+  const zonaEstados = document.getElementById("estados");
+  const zonaCabeceras = document.getElementById("cabeceras");
+  const zonaCodigo = document.getElementById("codigo");
+
+  zonaContenidos.textContent = "";
+  zonaCabeceras.textContent = "";
+  zonaCodigo.textContent = "";
+  zonaEstados.textContent = ESTADOS[0];
+
+  const xhr = new XMLHttpRequest();
+
+  // AJAX 3: estado de la petición en todo momento
+  xhr.onreadystatechange = function () {
+    zonaEstados.innerHTML += "<br>" + ESTADOS[xhr.readyState];
+
+    if (xhr.readyState === 4) {
+      // AJAX 2: contenido de la respuesta
+      zonaContenidos.textContent = xhr.responseText;
+      // AJAX 4: todas las cabeceras de la respuesta
+      zonaCabeceras.textContent = xhr.getAllResponseHeaders();
+      // AJAX 5: código y texto de estado
+      zonaCodigo.textContent = xhr.status + " " + xhr.statusText;
+    }
+  };
+
+  xhr.onerror = function () {
+    zonaCodigo.textContent = "Error de red o petición bloqueada (posible restricción CORS).";
+  };
+
+  try {
+    xhr.open("GET", url, true);
+    xhr.send(null);
+  } catch (e) {
+    zonaCodigo.textContent = "URL no válida: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
